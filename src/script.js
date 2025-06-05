@@ -321,7 +321,11 @@ function handleControls(deltaTime) {
     shipPivot.position.add(forward.multiplyScalar(forwardSpeed));
   }
 
-  // Maintain constant altitude
+  // Altitude (R/F)
+  if (keys["r"]) currentAltitude += altitudeSpeed * deltaTime * 25; // Faster altitude change
+  if (keys["f"]) currentAltitude -= altitudeSpeed * deltaTime * 25;
+  currentAltitude = Math.max(shipSize * 0.5, currentAltitude); // Don't go below surface (approx)
+
   shipPivot.position
     .normalize()
     .multiplyScalar(planetRadius + currentAltitude);
