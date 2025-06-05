@@ -260,15 +260,16 @@ function updateCamera() {
   ); // look slightly ahead
   const desiredLookAt = ship.localToWorld(lookAtOffset.clone());
 
-  // Store current camera quaternion
+  // Store the current orientation
   const currentCamQuat = camera.quaternion.clone();
 
-  // Temporarily look at the target
+  // Compute the target orientation by looking at the desired point
   camera.lookAt(desiredLookAt);
+  const targetQuat = camera.quaternion.clone();
 
-  // Interpolate quaternion for smoother lookAt
-  camera.quaternion.slerp(currentCamQuat, 0.92); // Inverted slerp logic, should be (current, target, t)
-  // Corrected: camera.quaternion.slerpQuaternions(currentCamQuat, camera.quaternion, 0.1);
+  // Restore the previous orientation and slerp toward the target
+  camera.quaternion.copy(currentCamQuat);
+  camera.quaternion.slerp(targetQuat, 0.1);
 
   // A simpler lookAt, less prone to issues if the above is jumpy:
   // camera.lookAt(shipPivot.position); // Look at the pivot point (center of ship)
