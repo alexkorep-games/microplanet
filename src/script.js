@@ -1,14 +1,11 @@
+import * as THREE from 'three';
+
 let scene, camera, renderer, clock;
 let planet, ship, shipPivot;
 let stars;
 let balls = [];
 
 const numBalls = 20;
-
-const skyColorNear = new THREE.Color(0x87ceeb); // light blue
-const spaceColor = new THREE.Color(0x000000); // black
-const skyTransitionStart = 20; // altitude where sky starts fading
-const skyTransitionEnd = 50; // altitude where space is fully visible
 
 const skyColorNear = new THREE.Color(0x87ceeb); // light blue
 const spaceColor = new THREE.Color(0x000000); // black
@@ -494,5 +491,4 @@ function getTerrainHeight(worldPosition) {
   return planetRadius + displacement * 0.3;
 }
 
-// Start the experience
-init();
+export default init;
