@@ -5,6 +5,11 @@ let balls = [];
 
 const numBalls = 20;
 
+const skyColorNear = new THREE.Color(0x87ceeb); // light blue
+const spaceColor = new THREE.Color(0x000000); // black
+const skyTransitionStart = 20; // altitude where sky starts fading
+const skyTransitionEnd = 50; // altitude where space is fully visible
+
 const planetRadius = 50;
 let currentAltitude = 15; // Altitude above planet surface
 const shipSize = 2;
@@ -32,6 +37,7 @@ function init() {
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(spaceColor);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
@@ -170,6 +176,8 @@ function createStars() {
   const starMaterial = new THREE.MeshBasicMaterial({
     map: createStarTexture(),
     side: THREE.BackSide,
+    transparent: true,
+    opacity: 1,
   });
   stars = new THREE.Mesh(starGeometry, starMaterial);
   scene.add(stars);
@@ -441,6 +449,19 @@ function animate() {
 
   // updateCamera();
   updateCameraStable();
+
+  // Adjust sky color based on altitude
+  const t = THREE.MathUtils.clamp(
+    (currentAltitude - skyTransitionStart) /
+      (skyTransitionEnd - skyTransitionStart),
+    0,
+    1
+  );
+  const newColor = skyColorNear.clone().lerp(spaceColor, t);
+  renderer.setClearColor(newColor);
+  if (stars && stars.material) {
+    stars.material.opacity = t;
+  }
 
   renderer.render(scene, camera);
 }
