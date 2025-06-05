@@ -1,6 +1,9 @@
 let scene, camera, renderer, clock;
 let planet, ship, shipPivot;
 let stars;
+let balls = [];
+
+const numBalls = 20;
 
 const planetRadius = 50;
 let currentAltitude = 15; // Altitude above planet surface
@@ -54,6 +57,9 @@ function init() {
 
   // Ship
   createShip();
+
+  // Balls
+  createBalls();
 
   // Stars
   createStars();
@@ -129,6 +135,30 @@ function createShip() {
 
   // Attach ship model to the pivot, slightly offset if needed (not needed here)
   shipPivot.add(ship);
+}
+
+function createBalls() {
+  for (let i = 0; i < numBalls; i++) {
+    const ballRadius = Math.random() * 1 + 0.5;
+    const ballGeometry = new THREE.SphereGeometry(ballRadius, 16, 16);
+    const ballMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(Math.random(), Math.random(), Math.random()),
+    });
+    const ball = new THREE.Mesh(ballGeometry, ballMaterial);
+    ball.castShadow = true;
+
+    const phi = Math.random() * (Math.PI / 6); // near the north pole
+    const theta = Math.random() * Math.PI * 2;
+    const r = planetRadius + ballRadius;
+    ball.position.set(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.cos(phi),
+      r * Math.sin(phi) * Math.sin(theta)
+    );
+
+    balls.push(ball);
+    scene.add(ball);
+  }
 }
 
 function createStars() {
