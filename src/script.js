@@ -251,9 +251,8 @@ function handleLeftMove(e) {
       const dy = t.clientY - leftTouch.startY;
       const threshold = 15;
       keys["a"] = dx < -threshold;
-      keys["d"] = dx > threshold;
+      keys["s"] = dx > threshold;
       keys["w"] = dy < -threshold;
-      keys["s"] = dy > threshold;
       break;
     }
   }
@@ -262,7 +261,7 @@ function handleLeftMove(e) {
 function handleLeftEnd(e) {
   for (const t of e.changedTouches) {
     if (leftTouch && t.identifier === leftTouch.id) {
-      keys["a"] = keys["d"] = keys["w"] = keys["s"] = false;
+      keys["a"] = keys["s"] = keys["w"] = false;
       leftTouch = null;
       break;
     }
@@ -280,11 +279,7 @@ function handleRightMove(e) {
     if (t.identifier === rightTouch.id) {
       const dx = t.clientX - rightTouch.startX;
       const dy = t.clientY - rightTouch.startY;
-      const threshold = 15;
-      keys["q"] = dx < -threshold;
-      keys["e"] = dx > threshold;
-      keys["r"] = dy < -threshold;
-      keys["f"] = dy > threshold;
+      // right joystick unused in simplified controls
       break;
     }
   }
@@ -293,7 +288,7 @@ function handleRightMove(e) {
 function handleRightEnd(e) {
   for (const t of e.changedTouches) {
     if (rightTouch && t.identifier === rightTouch.id) {
-      keys["q"] = keys["e"] = keys["r"] = keys["f"] = false;
+      // no keys to reset for right joystick
       rightTouch = null;
       break;
     }
@@ -302,68 +297,36 @@ function handleRightEnd(e) {
 
 // --- UPDATE & ANIMATION ---
 function handleControls(deltaTime) {
-  const moveSpeed = 1.0 * deltaTime; // Radians per second for rotation
-  const rollSpeed = 2.0 * deltaTime;
-  const altitudeSpeed = 10.0 * deltaTime;
+  const turnSpeed = 1.0 * deltaTime; // radians per second
+  const forwardSpeed = 10.0 * deltaTime; // units per second
 
   // --- Ship Orientation relative to its current position and planet center ---
-  // Vector from planet center to ship (this is the ship's "UP" direction)
   const shipUpVector = shipPivot.position.clone().normalize();
 
-  // Pitch (W/S or ArrowUp/ArrowDown)
-  let pitchAngle = 0;
-  if (keys["w"] || keys["ArrowUp"]) pitchAngle = -moveSpeed;
-  if (keys["s"] || keys["ArrowDown"]) pitchAngle = moveSpeed;
-  if (pitchAngle !== 0) {
-    // Pitch around ship's local X-axis (right vector)
-    const right = new THREE.Vector3();
-    ship.getWorldDirection(right).cross(shipUpVector).normalize(); // ship's right
-    shipPivot.rotateOnWorldAxis(right, pitchAngle);
-  }
-
-  // Yaw (A/D or ArrowLeft/ArrowRight)
+  // Turning (A/S or ArrowLeft/ArrowRight)
   let yawAngle = 0;
-  if (keys["a"] || keys["ArrowLeft"]) yawAngle = moveSpeed;
-  if (keys["d"] || keys["ArrowRight"]) yawAngle = -moveSpeed;
+  if (keys["a"] || keys["ArrowLeft"]) yawAngle = turnSpeed;
+  if (keys["s"] || keys["ArrowRight"]) yawAngle = -turnSpeed;
   if (yawAngle !== 0) {
-    // Yaw around the ship's local UP vector (which is shipUpVector)
     shipPivot.rotateOnWorldAxis(shipUpVector, yawAngle);
   }
 
-  // Roll (Q/E)
-  let rollAngle = 0;
-  if (keys["q"]) rollAngle = rollSpeed;
-  if (keys["e"]) rollAngle = -rollSpeed;
-  if (rollAngle !== 0) {
-    // Roll around ship's local Z-axis (forward vector)
-    ship.rotateZ(rollAngle);
+  // Move forward (W)
+  if (keys["w"]) {
+    const forward = new THREE.Vector3();
+    shipPivot.getWorldDirection(forward);
+    // remove vertical component to keep motion along the surface
+    forward.sub(shipUpVector.clone().multiplyScalar(forward.dot(shipUpVector)));
+    forward.normalize();
+    shipPivot.position.add(forward.multiplyScalar(forwardSpeed));
   }
 
-  // Altitude (R/F)
-  if (keys["r"]) currentAltitude += altitudeSpeed * deltaTime * 5; // Faster altitude change
-  if (keys["f"]) currentAltitude -= altitudeSpeed * deltaTime * 5;
-  currentAltitude = Math.max(shipSize * 0.5, currentAltitude); // Don't go below surface (approx)
-
-  // Update ship's position based on altitude and its orientation
-  // The rotation of shipPivot moves it "around" the planet.
-  // Then we adjust its distance from the center based on currentAltitude.
+  // Maintain constant altitude
   shipPivot.position
     .normalize()
     .multiplyScalar(planetRadius + currentAltitude);
 
-  // Re-orient the ship model itself to always point "up" away from the planet center
-  // The ship model is a child of shipPivot.
-  // We want the ship model's +Y to align with shipUpVector.
-  // And its +Z (forward) to align with shipPivot's forward.
-  // This is tricky. A simpler method is to ensure shipPivot.up is always shipUpVector.
-  shipPivot.up.copy(shipUpVector); // Set the pivot's up direction
-
-  // To make the ship (cone model) align correctly after pivot rotations:
-  // The ship model is already rotated to point "forward" (its local Z)
-  // We need to make the shipPivot lookAt a point slightly in its current forward direction,
-  // while maintaining its up vector. This is implicitly handled by how we rotate shipPivot.
-  // The key is that shipPivot's orientation IS the ship's world orientation.
-  // The ship mesh inside it is just the visual model.
+  shipPivot.up.copy(shipUpVector); // keep ship upright
 }
 
 function updateCamera() {
