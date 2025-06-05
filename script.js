@@ -10,6 +10,11 @@ const spaceColor = new THREE.Color(0x000000); // black
 const skyTransitionStart = 20; // altitude where sky starts fading
 const skyTransitionEnd = 50; // altitude where space is fully visible
 
+const skyColorNear = new THREE.Color(0x87ceeb); // light blue
+const spaceColor = new THREE.Color(0x000000); // black
+const skyTransitionStart = 20; // altitude where sky starts fading
+const skyTransitionEnd = 50; // altitude where space is fully visible
+
 const planetRadius = 50;
 let currentAltitude = 15; // Altitude above planet surface
 const shipSize = 2;
