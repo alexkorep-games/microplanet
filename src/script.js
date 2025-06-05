@@ -460,9 +460,10 @@ function animate() {
     1
   );
   const newColor = skyColorNear.clone().lerp(spaceColor, t);
-  renderer.setClearColor(newColor);
+  renderer.setClearColor(newColor, 1);
   if (stars && stars.material) {
     stars.material.opacity = t;
+    stars.material.needsUpdate = true;
   }
 
   renderer.render(scene, camera);
