@@ -340,8 +340,8 @@ function handleControls(deltaTime) {
   }
 
   // Altitude (R/F)
-  if (keys["r"]) currentAltitude += altitudeSpeed * deltaTime * 5; // Faster altitude change
-  if (keys["f"]) currentAltitude -= altitudeSpeed * deltaTime * 5;
+  if (keys["r"]) currentAltitude += altitudeSpeed * deltaTime * 25; // Faster altitude change
+  if (keys["f"]) currentAltitude -= altitudeSpeed * deltaTime * 25;
   currentAltitude = Math.max(shipSize * 0.5, currentAltitude); // Don't go below surface (approx)
 
   // Update ship's position based on altitude and its orientation
