@@ -7,6 +7,9 @@ let currentAltitude = 15; // Altitude above planet surface
 const shipSize = 2;
 
 const keys = {}; // To store key states
+let leftJoystick, rightJoystick;
+let leftTouch = null;
+let rightTouch = null;
 
 // --- INITIALIZATION ---
 function init() {
@@ -62,6 +65,7 @@ function init() {
   window.addEventListener("resize", onWindowResize, false);
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
+  setupTouchControls();
 
   // Start animation loop
   animate();
@@ -175,6 +179,85 @@ function onKeyDown(event) {
 function onKeyUp(event) {
   keys[event.key.toLowerCase()] = false;
   keys[event.code] = false;
+}
+
+// Touch controls
+function setupTouchControls() {
+  leftJoystick = document.getElementById("joystick-left");
+  rightJoystick = document.getElementById("joystick-right");
+  if (!leftJoystick || !rightJoystick) return;
+
+  leftJoystick.addEventListener("touchstart", handleLeftStart);
+  leftJoystick.addEventListener("touchmove", handleLeftMove);
+  leftJoystick.addEventListener("touchend", handleLeftEnd);
+  leftJoystick.addEventListener("touchcancel", handleLeftEnd);
+
+  rightJoystick.addEventListener("touchstart", handleRightStart);
+  rightJoystick.addEventListener("touchmove", handleRightMove);
+  rightJoystick.addEventListener("touchend", handleRightEnd);
+  rightJoystick.addEventListener("touchcancel", handleRightEnd);
+}
+
+function handleLeftStart(e) {
+  const t = e.changedTouches[0];
+  leftTouch = { id: t.identifier, startX: t.clientX, startY: t.clientY };
+}
+
+function handleLeftMove(e) {
+  if (!leftTouch) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier === leftTouch.id) {
+      const dx = t.clientX - leftTouch.startX;
+      const dy = t.clientY - leftTouch.startY;
+      const threshold = 15;
+      keys["a"] = dx < -threshold;
+      keys["d"] = dx > threshold;
+      keys["w"] = dy < -threshold;
+      keys["s"] = dy > threshold;
+      break;
+    }
+  }
+}
+
+function handleLeftEnd(e) {
+  for (const t of e.changedTouches) {
+    if (leftTouch && t.identifier === leftTouch.id) {
+      keys["a"] = keys["d"] = keys["w"] = keys["s"] = false;
+      leftTouch = null;
+      break;
+    }
+  }
+}
+
+function handleRightStart(e) {
+  const t = e.changedTouches[0];
+  rightTouch = { id: t.identifier, startX: t.clientX, startY: t.clientY };
+}
+
+function handleRightMove(e) {
+  if (!rightTouch) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier === rightTouch.id) {
+      const dx = t.clientX - rightTouch.startX;
+      const dy = t.clientY - rightTouch.startY;
+      const threshold = 15;
+      keys["q"] = dx < -threshold;
+      keys["e"] = dx > threshold;
+      keys["r"] = dy < -threshold;
+      keys["f"] = dy > threshold;
+      break;
+    }
+  }
+}
+
+function handleRightEnd(e) {
+  for (const t of e.changedTouches) {
+    if (rightTouch && t.identifier === rightTouch.id) {
+      keys["q"] = keys["e"] = keys["r"] = keys["f"] = false;
+      rightTouch = null;
+      break;
+    }
+  }
 }
 
 // --- UPDATE & ANIMATION ---
